@@ -21,11 +21,7 @@ cfg.initialize(logging_level='WORKFLOW')
 rgi_version = '61'
 rgi_region = '15'  
 
-# Here we override some of the default parameters
-# How many grid points around the glacier?
-# Make it large if you expect your glaciers to grow large:
-# here, 80 is more than enough
-cfg.PARAMS['border'] = 80
+
 
 # Local working directory (where OGGM will write its output)
 WORKING_DIR = '/Users/louis/China_test/'
@@ -40,7 +36,7 @@ rgidf = gpd.read_file(path)
 basin = gpd.read_file('/Users/louis/china_test.shp')
 print('got glacier shp')
 
-# Take all glaciers in the Rofental Basin
+# Take all glaciers in the desired areas
 in_bas = [basin.geometry.contains(shpg.Point(x, y))[0] for
           (x, y) in zip(rgidf.CenLon, rgidf.CenLat)]
 rgidf = rgidf.loc[in_bas]
