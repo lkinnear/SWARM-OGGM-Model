@@ -63,16 +63,16 @@ gdirs = workflow.init_glacier_directories(rgidf, from_prepro_level=4)
 # Random climate representative for the recent climate (1985-2015)
 # This is a kind of "commitment" run
 workflow.execute_entity_task(tasks.run_random_climate, gdirs,
-                             nyears=300, y0=2000, seed=1,
+                             nyears=300, y0=2000, seed=1,store_monthly_step=True,
                              output_filesuffix='_commitment')
 # Now we add a positive and a negative bias to the random temperature series
 workflow.execute_entity_task(tasks.run_random_climate, gdirs,
                              nyears=300, y0=2000, seed=2,
-                             temperature_bias=0.5,
+                             temperature_bias=0.5,store_monthly_step=True,
                              output_filesuffix='_bias_p')
 workflow.execute_entity_task(tasks.run_random_climate, gdirs,
                              nyears=300, y0=2000, seed=3,
-                             temperature_bias=-0.5,
+                             temperature_bias=-0.5,store_monthly_step=True,
                              output_filesuffix='_bias_m')
 
 # Write the compiled output

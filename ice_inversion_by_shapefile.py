@@ -56,6 +56,9 @@ gdirs = workflow.init_glacier_directories(rgidf,
                                           prepro_border=10)
 
 # Default parameters
+
+
+##### Where the stiffness parameters are set?
 # Deformation: from Cuffey and Patterson 2010
 glen_a = 2.4e-24
 # Sliding: from Oerlemans 1997
