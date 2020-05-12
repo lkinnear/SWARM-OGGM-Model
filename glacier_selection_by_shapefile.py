@@ -3,6 +3,7 @@ import logging
 
 # Libs
 import geopandas as gpd
+import pandas as pd
 import shapely.geometry as shpg
 
 # Locals
@@ -21,7 +22,8 @@ cfg.initialize(logging_level='WORKFLOW')
 rgi_version = '61'
 rgi_region = '15'  
 
-
+# No need for a big map here
+cfg.PARAMS['border'] = 80
 
 # Local working directory (where OGGM will write its output)
 WORKING_DIR = '/Users/louis/China_test/'
@@ -45,6 +47,11 @@ print('found basins')
 rgidf = rgidf.sort_values('Area', ascending=False)
 # Get rid of smaller glaciers
 rgidf = rgidf.drop(rgidf[rgidf.Area < 0.5].index)
+#Added in section to convert to pandas dataframe and print out file sol only need to run once
+rgidf.to_file('/Users/louis/China_test/rgidf.shp')
+#COnvert to pandas dataframe then print
+rgipdf = pd.DataFrame(rgidf)
+rgipdf.to_csv('/Users/louis/China_test/rgipdf.csv')
 
 log.workflow('Starting OGGM run')
 log.workflow('Number of glaciers: {}'.format(len(rgidf)))
