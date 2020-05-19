@@ -49,23 +49,28 @@ print('found basins')
 rgidf = rgidf.sort_values('Area', ascending=False)
 # Get rid of smaller glaciers, area is in km^2
 rgidf = rgidf.drop(rgidf[rgidf.Area < 1.0].index)
-#Added in section to convert to pandas dataframe and print out file sol only need to run once
-rgidf.to_file('/Users/louis/workflow_test/rgidf.shp')
-#COnvert to pandas dataframe then print
-rgipdf = pd.DataFrame(rgidf)
-rgipdf.to_csv('/Users/louis/workflow_test/rgipdf.csv')
+##Added in section to convert to pandas dataframe and print out file if needed/check data
+#rgidf.to_file('/Users/louis/workflow_test/rgidf.shp')
+##Convert to pandas dataframe then print
+#rgipdf = pd.DataFrame(rgidf)
+#rgipdf.to_csv('/Users/louis/workflow_test/rgipdf.csv')
 
+#Start the run
 log.workflow('Starting OGGM run')
 log.workflow('Number of glaciers: {}'.format(len(rgidf)))
 
-# Go - get the pre-processed glacier directories
+#Go get the pre-processed glacier directories, this will eventually be reduced to prepro = 1 but for now need the cliamte files in the glacier directories.
 gdirs = workflow.init_glacier_directories(rgidf, from_prepro_level=2)
-
+#Run the prepro tasks on the dem to get flowlines etc.
 workflow.gis_prepro_tasks(gdirs)
+#Run the climate calibrations based on the new mass balance data
 workflow.execute_entity_task(tasks.local_t_star, gdirs)
 workflow.execute_entity_task(tasks.mu_star_calibration, gdirs)
+#Run the inversion tools ahead of the model runs
 workflow.inversion_tasks(gdirs)
+#Compile all the previous tasks to give the output ready for a model run
 workflow.execute_entity_task(tasks.init_present_time_glacier, gdirs)
+#Run the model run
 workflow.execute_entity_task(tasks.run_random_climate, gdirs,
                              nyears=300, y0=2000, seed=1,store_monthly_step=True,
                              output_filesuffix='_commitment')
