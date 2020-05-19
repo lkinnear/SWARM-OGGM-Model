@@ -32,7 +32,7 @@ cfg.initialize()
 # Local paths (where to write the OGGM run output)
 dirname = 'OGGM_ref_mb_{}_RGIV{}_OGGM{}'.format(baseline, rgi_version,
                                                 oggm.__version__)
-WORKING_DIR = utils.gettempdir(dirname, home=True)
+WORKING_DIR = '/Users/louis/mb_calib/'
 utils.mkdir(WORKING_DIR, reset=True)
 cfg.PATHS['working_dir'] = WORKING_DIR
 
