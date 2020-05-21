@@ -61,15 +61,34 @@ log.workflow('Number of glaciers: {}'.format(len(rgidf)))
 
 #Go get the pre-processed glacier directories, this will eventually be reduced to prepro = 1 but for now need the cliamte files in the glacier directories.
 gdirs = workflow.init_glacier_directories(rgidf, from_prepro_level=2)
-#Run the prepro tasks on the dem to get flowlines etc.
+#Run the prepro tasks on the dem to get flowlines using the generic processing etc.
 workflow.gis_prepro_tasks(gdirs)
 #Run the climate calibrations based on the new mass balance data
 workflow.execute_entity_task(tasks.local_t_star, gdirs)
 workflow.execute_entity_task(tasks.mu_star_calibration, gdirs)
+
+
+
 #Run the inversion tools ahead of the model runs
-workflow.inversion_tasks(gdirs)
+#First set the paramters we can change:
+# Deformation: from Cuffey and Patterson 2010
+glen_a = 2.4e-24
+# Sliding: from Oerlemans 1997
+fs = 5.7e-20
+#Prep the data for inversion
+workflow.execute_entity_task(tasks.prepare_for_inversion, gdirs)
+#Run the inversion
+workflow.execute_entity_task(tasks.mass_conservation_inversion, gdirs,
+                                 glen_a=glen_a, fs=fs)
+#Apparently can be an issue wioth the last few grid points being noisy or having a negative slope so can filter these without affecting the total volume
+workflow.execute_entity_task(tasks.filter_inversion_output, gdirs)
+
+
+
 #Compile all the previous tasks to give the output ready for a model run
 workflow.execute_entity_task(tasks.init_present_time_glacier, gdirs)
+
+
 #Run the model run
 workflow.execute_entity_task(tasks.run_random_climate, gdirs,
                              nyears=300, y0=2000, seed=1,store_monthly_step=True,
