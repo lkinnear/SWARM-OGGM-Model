@@ -6,7 +6,7 @@ import xarray as xr
 #Set up the working directory
 run_name='cru_rf_hgt_custom_climate_runs'
 #os.mkdir('/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/'+run_name)
-working_dir = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/'+run_name
+working_dir = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/'+run_name
 #Now locate the raw dataset
 run_name = 'oggm_custom_climate_cru_rf_hgt'
 raw_data_directory = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_runs/'
@@ -74,12 +74,12 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
                   volume_bsl_m3 = None
                   volume_bwl_m3 = None
                   for i in range (len(rgi_id)):
-                      for root, dirs, files in os.walk(raw_data_folder, topdown=False):
-                          for name in dirs:
-                              if name == rgi_id[i]:
+                                 #Do some trickery to get the paths and speed it up over loops
+                                  fold = rgi_id[i][:8]
+                                  subfold = rgi_id[i][:11]
+                                  folpath = raw_data_folder+'/'+fold+'/'+subfold+'/'+rgi_id[i]+'/model_diagnostics_commitment.nc'
                                   print('found glacier number: {}'.format(i))
-                                  ppath = os.path.join(root,name,'model_diagnostics_commitment.nc')
-                                  with xr.open_dataset(ppath) as ds_diag:
+                                  with xr.open_dataset(folpath) as ds_diag:
                                       vol[:, i] = ds_diag.volume_m3.values
                                       area[:, i] = ds_diag.area_m2.values
                                       length[:, i] = ds_diag.length_m.values
