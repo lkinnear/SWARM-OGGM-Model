@@ -8,8 +8,8 @@
  5. mb_calibration_scripts: scripts for running and testing the mass balance calibration
  6. shape_files: the various shape files used
  
- .. prepro_directory_tester.py a simple script to allow compaison between different prepro directory levels
+ prepro_directory_tester.py a simple script to allow compaison between different prepro directory levels
  
  The following scripts have been superseded and can be removed with time
- .. A script for selecting and outputting the RGI glacier information selected by a shapefile 
- .. A script for selecting ice inversion by shapefile
+ A script for selecting and outputting the RGI glacier information selected by a shapefile 
+ A script for selecting ice inversion by shapefile
