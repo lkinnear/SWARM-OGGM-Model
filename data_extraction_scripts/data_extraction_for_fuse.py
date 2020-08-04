@@ -66,13 +66,10 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
                   # These variables are always available
                   vol = np.zeros(shape)
                   area = np.zeros(shape)
-                  length = np.zeros(shape)
-                  ela = np.zeros(shape)
-                  # These are not
-                  calving_m3 = None
-                  calving_rate_myr = None
-                  volume_bsl_m3 = None
-                  volume_bwl_m3 = None
+
+                  lat = np.zeros(shape)
+                  lon = np.zeros(shape)
+
                   for i in range (len(rgi_id)):
                                  #Do some trickery to get the paths and speed it up over loops
                                   fold = rgi_id[i][:8]
@@ -82,24 +79,8 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
                                   with xr.open_dataset(folpath) as ds_diag:
                                       vol[:, i] = ds_diag.volume_m3.values
                                       area[:, i] = ds_diag.area_m2.values
-                                      length[:, i] = ds_diag.length_m.values
-                                      ela[:, i] = ds_diag.ela_m.values
-                                      if 'calving_m3' in ds_diag:
-                                          if calving_m3 is None:
-                                              calving_m3 = np.zeros(shape) * np.NaN
-                                          calving_m3[:, i] = ds_diag.calving_m3.values
-                                      if 'calving_rate_myr' in ds_diag:
-                                          if calving_rate_myr is None:
-                                              calving_rate_myr = np.zeros(shape) * np.NaN
-                                          calving_rate_myr[:, i] = ds_diag.calving_rate_myr.values
-                                      if 'volume_bsl_m3' in ds_diag:
-                                          if volume_bsl_m3 is None:
-                                              volume_bsl_m3 = np.zeros(shape) * np.NaN
-                                          volume_bsl_m3[:, i] = ds_diag.volume_bsl_m3.values
-                                      if 'volume_bwl_m3' in ds_diag:
-                                          if volume_bwl_m3 is None:
-                                              volume_bwl_m3 = np.zeros(shape) * np.NaN
-                                          volume_bwl_m3[:, i] = ds_diag.volume_bwl_m3.values
+
+
 
                   ds['volume'] = (('time', 'rgi_id'), vol)
                   ds['volume'].attrs['description'] = 'Total glacier volume'
@@ -107,32 +88,6 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
                   ds['area'] = (('time', 'rgi_id'), area)
                   ds['area'].attrs['description'] = 'Total glacier area'
                   ds['area'].attrs['units'] = 'm 2'
-                  ds['length'] = (('time', 'rgi_id'), length)
-                  ds['length'].attrs['description'] = 'Glacier length'
-                  ds['length'].attrs['units'] = 'm'
-                  ds['ela'] = (('time', 'rgi_id'), ela)
-                  ds['ela'].attrs['description'] = 'Glacier Equilibrium Line Altitude (ELA)'
-                  ds['ela'].attrs['units'] = 'm a.s.l'
-                  if calving_m3 is not None:
-                          ds['calving'] = (('time', 'rgi_id'), calving_m3)
-                          ds['calving'].attrs['description'] = ('Total calving volume since '
-                                                                'simulation start')
-                          ds['calving'].attrs['units'] = 'm3'
-                  if calving_rate_myr is not None:
-                          ds['calving_rate'] = (('time', 'rgi_id'), calving_rate_myr)
-                          ds['calving_rate'].attrs['description'] = 'Instantaneous calving rate'
-                          ds['calving_rate'].attrs['units'] = 'm yr-1'
-                  if volume_bsl_m3 is not None:
-                          ds['volume_bsl'] = (('time', 'rgi_id'), volume_bsl_m3)
-                          ds['volume_bsl'].attrs['description'] = ('Total glacier volume below '
-                                                                   'sea level')
-                          ds['volume_bsl'].attrs['units'] = 'm3'
-                  if volume_bwl_m3 is not None:
-                          ds['volume_bwl'] = (('time', 'rgi_id'), volume_bwl_m3)
-                          ds['volume_bwl'].attrs['description'] = ('Total glacier volume below '
-                                                                   'water level')
-                          ds['volume_bwl'].attrs['units'] = 'm3'
-
 
                   num = num+1
                   break

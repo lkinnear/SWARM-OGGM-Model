@@ -34,12 +34,12 @@ cfg.PARAMS['mp_processes'] = 32
 # We are using which baseline data?
 cfg.PARAMS['baseline_climate'] = 'CUSTOM'
 # change the custom climate data
-cfg.PATHS['climate_file'] = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/SWARM_files/oggm_SWARM_input_cru_ref_hgts/oggm_cru_hgt_input.nc'
+cfg.PATHS['climate_file'] = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/SWARM_files/oggm_CORDEX_input/CORDEX_oggm_input.nc'
 # Set to True for operational runs - here we want all glaciers to run
 cfg.PARAMS['continue_on_error'] = True
 
 # Local working directory (where OGGM will write its output) Need to create this beforehand and put the mass balance data in (ref_t_stars.csv).
-WORKING_DIR = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_runs/oggm_custom_climate_cru_rf_hgt'
+WORKING_DIR = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_runs/oggm_CORDEX'
 cfg.PATHS['working_dir'] = WORKING_DIR
 
 # RGI file setup, easiest but very inelegant way to do this atm is to make a list of all 13,14,15 RGI glaciers then filtering
@@ -93,7 +93,7 @@ gdirs = workflow.init_glacier_directories(rgidf, from_prepro_level=1)
 workflow.gis_prepro_tasks(gdirs)
 #Process the climate data
 log.info('Process the climate data...')
-workflow.execute_entity_task(tasks.process_climate_data, gdirs,y1=2018)
+workflow.execute_entity_task(tasks.process_climate_data, gdirs, y0=1990)
 #Run the climate calibrations based on the new mass balance data, this mass balance data should be in the Working directory folder.
 workflow.execute_entity_task(tasks.local_t_star, gdirs)
 workflow.execute_entity_task(tasks.mu_star_calibration, gdirs)
@@ -117,10 +117,10 @@ workflow.execute_entity_task(tasks.init_present_time_glacier, gdirs)
 
 #Run the model run, this can be changed to 'run_from_climate_data' for our runs
 workflow.execute_entity_task(tasks.run_from_climate_data, gdirs,
-                             nyears=100, y0=2000, seed=1,store_monthly_step=True,
+                             ys=1981, ye=2010, seed=1,store_monthly_step=True,
                              output_filesuffix='_commitment')
 
-workflow.execute_entity_task(tasks.compile_run_output, gdirs)
+#workflow.execute_entity_task(tasks.compile_run_output, gdirs)
 workflow.execute_entity_task(tasks.compile_climate_input, gdirs)
 
 # Log
