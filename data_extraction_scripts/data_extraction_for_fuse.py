@@ -25,6 +25,7 @@ for root,dirs,files in os.walk(raw_data_folder, topdown=False):
             rgi = os.path.basename(os.path.dirname(path))
             rgi = str(rgi)
             rgi_id.append(rgi)
+
 #Hacky way to start the process by making a file to input the data scraped from the loop into.
 for root, dirs, files in os.walk(raw_data_folder, topdown=False):
     for name in files:
@@ -47,6 +48,7 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
 
 
                   # Coordinates
+                  
                   ds.coords['time'] = ('time', time)
                   ds.coords['rgi_id'] = ('rgi_id', rgi_id)
                   ds.coords['hydro_year'] = ('time', yrs)
@@ -66,9 +68,10 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
                   # These variables are always available
                   vol = np.zeros(shape)
                   area = np.zeros(shape)
+                  latitude =np.zeros(len(rgi_id))
+                  longitude =np.zeros(len(rgi_id))
 
-                  lat = np.zeros(shape)
-                  lon = np.zeros(shape)
+
 
                   for i in range (len(rgi_id)):
                                  #Do some trickery to get the paths and speed it up over loops
@@ -79,13 +82,27 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
                                   with xr.open_dataset(folpath) as ds_diag:
                                       vol[:, i] = ds_diag.volume_m3.values
                                       area[:, i] = ds_diag.area_m2.values
+                                  #open the file to get lat and lon
+                                  folpath = raw_data_folder+'/'+fold+'/'+subfold+'/'+rgi_id[i]+'/climate_historical.nc'
+                                  with xr.open_dataset(folpath) as ds_diag:
+                                      lat = ds_diag.ref_pix_lat
+                                      lon = ds_diag.ref_pix_lon
+
+                                      latitude[i] = lat
+                                      longitude[i] = lon
+
+                                 #Now get the rainfall
 
 
 
-                  ds['volume'] = (('time', 'rgi_id'), vol)
+                  idx = pd.MultiIndex.from_arrays(arrays=[latitude,longitude], names=["lat","lon"])
+                  volume = pd.Series(data=vol, index=idx)
+                  ds['volume'] = xr.DataArray.from_series(volume)
+                  #ds['volume'] = (('lat','lon','time', 'rgi_id'), (lat,lon,vol))
+                  ds['volume'].set_coords('lat','lon')
                   ds['volume'].attrs['description'] = 'Total glacier volume'
                   ds['volume'].attrs['units'] = 'm 3'
-                  ds['area'] = (('time', 'rgi_id'), area)
+                  ds['area'] = (('time','rgi_id'), area)
                   ds['area'].attrs['description'] = 'Total glacier area'
                   ds['area'].attrs['units'] = 'm 2'
 
@@ -97,6 +114,7 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
         break
 #Now output the File
 ds.to_netcdf(path=working_dir+'/test.nc')
+
 
 
 

@@ -93,7 +93,7 @@ gdirs = workflow.init_glacier_directories(rgidf, from_prepro_level=1)
 workflow.gis_prepro_tasks(gdirs)
 #Process the climate data
 log.info('Process the climate data...')
-workflow.execute_entity_task(tasks.process_climate_data, gdirs, y0=1990)
+workflow.execute_entity_task(tasks.process_custom_climate_data, gdirs, y0=1990)
 #Run the climate calibrations based on the new mass balance data, this mass balance data should be in the Working directory folder.
 workflow.execute_entity_task(tasks.local_t_star, gdirs)
 workflow.execute_entity_task(tasks.mu_star_calibration, gdirs)
@@ -116,12 +116,11 @@ workflow.execute_entity_task(tasks.init_present_time_glacier, gdirs)
 
 
 #Run the model run, this can be changed to 'run_from_climate_data' for our runs
-workflow.execute_entity_task(tasks.run_from_climate_data, gdirs,
-                             ys=1981, ye=2010, seed=1,store_monthly_step=True,
+workflow.execute_entity_task(tasks.run_from_climate_data, gdirs,store_monthly_step=True,ys=1991, ye=2010,
                              output_filesuffix='_commitment')
 
 #workflow.execute_entity_task(tasks.compile_run_output, gdirs)
-workflow.execute_entity_task(tasks.compile_climate_input, gdirs)
+#workflow.execute_entity_task(tasks.compile_climate_input, gdirs)
 
 # Log
 m, s = divmod(time.time() - start, 60)
