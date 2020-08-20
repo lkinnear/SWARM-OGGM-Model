@@ -4,11 +4,11 @@ import pandas as pd
 import xarray as xr
 
 #Set up the working directory
-run_name='cru_rf_hgt_custom_climate_runs'
+run_name='script_testing'
 #os.mkdir('/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/'+run_name)
 working_dir = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/'+run_name
 #Now locate the raw dataset
-run_name = 'oggm_custom_climate_cru_rf_hgt'
+run_name = 'oggm_custom_climate_run_30km'
 raw_data_directory = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_runs/'
 raw_data_folder = raw_data_directory+run_name+'/per_glacier/'
 #Now give a it an output to make sure it's running properly and you can check
@@ -53,16 +53,16 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
                   ds.coords['time'] = ('time', time)
                   ds.coords['time'].astype(float)
                   ds.coords['rgi_id'] = ('rgi_id', rgi_id)
-                  ds.coords['hydro_year'] = ('time', yrs)
-                  ds.coords['hydro_month'] = ('time', months)
-                  ds.coords['calendar_year'] = ('time', cyrs)
-                  ds.coords['calendar_month'] = ('time', cmonths)
-                  ds['time'].attrs['description'] = 'Floating hydrological year'
-                  ds['rgi_id'].attrs['description'] = 'RGI glacier identifier'
-                  ds['hydro_year'].attrs['description'] = 'Hydrological year'
-                  ds['hydro_month'].attrs['description'] = 'Hydrological month'
-                  ds['calendar_year'].attrs['description'] = 'Calendar year'
-                  ds['calendar_month'].attrs['description'] = 'Calendar month'
+                  # ds.coords['hydro_year'] = ('time', yrs)
+                  # ds.coords['hydro_month'] = ('time', months)
+                  # ds.coords['calendar_year'] = ('time', cyrs)
+                  # ds.coords['calendar_month'] = ('time', cmonths)
+                  # ds['time'].attrs['description'] = 'Floating hydrological year'
+                  # ds['rgi_id'].attrs['description'] = 'RGI glacier identifier'
+                  # ds['hydro_year'].attrs['description'] = 'Hydrological year'
+                  # ds['hydro_month'].attrs['description'] = 'Hydrological month'
+                  # ds['calendar_year'].attrs['description'] = 'Calendar year'
+                  # ds['calendar_month'].attrs['description'] = 'Calendar month'
 
                   #Create the dimensions
                   shape = (len(time), len(rgi_id))
@@ -70,7 +70,7 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
                   # These variables are always available
                   vol = np.zeros(shape)
                   area = np.zeros(shape)
-                  precip = np.zeroes(shape)
+                  precip = np.zeros(shape)
                   latitude =np.zeros(len(rgi_id))
                   longitude =np.zeros(len(rgi_id))
 
@@ -95,7 +95,7 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
                                       longitude[i] = lon
                                       latitude.astype(float)
                                       longitude.astype(float)
-                                      precip[:, i] = ds_diag.prcp.values
+                                      #precip[:, i] = ds_diag.prcp.values
 
                                  #Now get the rainfall
 
@@ -120,9 +120,9 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
                   ds['area'].attrs['description'] = 'Total glacier area'
                   ds['area'].attrs['units'] = 'm 2'
 
-                  ds['precipitation'] = (('time','rgi_id'), precip)
-                  ds['precipitation'].attrs['description'] = 'Total monthly precipitation'
-                  ds['precipitation'].attrs['units'] = 'kg m 2'
+                  #ds['precipitation'] = (('time','rgi_id'), precip)
+                  #ds['precipitation'].attrs['description'] = 'Total monthly precipitation'
+                  #ds['precipitation'].attrs['units'] = 'kg m 2'
 
 
 
@@ -133,6 +133,19 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
 
        else:
         break
+
+#Convert the xarray datasets to dataframes
+area_df = ds['area'].to_dataframe()
+volume_df = ds['volume'].to_dataframe()
+volume_df = volume_df.pivot_table('volume', 'rgi_id','time')
+area_df = area_df.pivot_table('area', 'rgi_id','time')
+#Find the net volume change at each timestep
+volume_net = volume_df.copy()
+for i in range(1,len(volume_net.columns)):
+    volume_net[volume_net.columns[i]] = volume_df[volume_net.columns[i-1]]-volume_df[volume_net.columns[i]]
+
+
+
 #Create a dataframe with the RGI ID and the lat lon Coordinates.
 #Now process the DataFrame
 loc_data = np.stack((rgi_id,latitude,longitude),axis=1)
@@ -144,8 +157,9 @@ lat_cut = pd.cut(loc_df.lat, np.linspace(16, 57.25, 166),labels=(np.linspace(16,
 lon_cut = pd.cut(loc_df.lon, np.linspace(72, 143.25, 286),labels=(np.linspace(72, 143, 285)))
 loc_df['lat_bin'] = lat_cut
 loc_df['lon_bin'] = lon_cut
-#Now output the File
+#Now output the File to check
 loc_df.to_csv(working_dir+'/loc_bins_labeled.csv')
+volume_net.to_csv(working_dir+'/volume_net.csv')
 #df = ds.to_dask_dataframe()
 #ds.to_netcdf(path=working_dir+'/test.nc',mode='w',format='NETCDF4')
 
