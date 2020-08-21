@@ -8,7 +8,7 @@ run_name='script_testing'
 #os.mkdir('/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/'+run_name)
 working_dir = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/'+run_name
 #Now locate the raw dataset
-run_name = 'oggm_custom_climate_run_30km'
+run_name = 'oggm_CORDEX'
 raw_data_directory = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_runs/'
 raw_data_folder = raw_data_directory+run_name+'/per_glacier/'
 #Now give a it an output to make sure it's running properly and you can check
@@ -17,7 +17,7 @@ print('Processing the data from '+raw_data_folder+' to output in '+working_dir)
 
 rgi_id = []
 num=1
-#Get list of RGI-IDs t0 use
+#Get list of RGI-IDs to use
 for root,dirs,files in os.walk(raw_data_folder, topdown=False):
     for name in files:
         if name == 'model_diagnostics_commitment.nc':
@@ -64,6 +64,17 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
                   # ds['calendar_year'].attrs['description'] = 'Calendar year'
                   # ds['calendar_month'].attrs['description'] = 'Calendar month'
 
+                  #Find the cliamte file information
+
+                  fold = rgi_id[0][:8]
+                  subfold = rgi_id[0][:11]
+                  folpath = raw_data_folder+'/'+fold+'/'+subfold+'/'+rgi_id[0]+'/climate_historical.nc'
+                  climate_time = xr.open_dataset(folpath).time.values
+
+                  start_date = climate_time[3]
+                  print(start_date)
+                  end_date = climate_time[231]
+                  print(end_date)
                   #Create the dimensions
                   shape = (len(time), len(rgi_id))
                   print('There are {} glaciers that contain run data'.format(len(rgi_id)))
@@ -95,7 +106,7 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
                                       longitude[i] = lon
                                       latitude.astype(float)
                                       longitude.astype(float)
-                                      #precip[:, i] = ds_diag.prcp.values
+                                      precip[:, i] = ds_diag.prcp.sel(time=slice("{}".format(start_date),"{}".format(end_date)))
 
                                  #Now get the rainfall
 
@@ -120,9 +131,9 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
                   ds['area'].attrs['description'] = 'Total glacier area'
                   ds['area'].attrs['units'] = 'm 2'
 
-                  #ds['precipitation'] = (('time','rgi_id'), precip)
-                  #ds['precipitation'].attrs['description'] = 'Total monthly precipitation'
-                  #ds['precipitation'].attrs['units'] = 'kg m 2'
+                  ds['precipitation'] = (('time','rgi_id'), precip)
+                  ds['precipitation'].attrs['description'] = 'Total monthly precipitation'
+                  ds['precipitation'].attrs['units'] = 'kg m 2'
 
 
 
@@ -137,12 +148,15 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
 #Convert the xarray datasets to dataframes
 area_df = ds['area'].to_dataframe()
 volume_df = ds['volume'].to_dataframe()
+precip_df = ds['precipitation'].to_dataframe()
 volume_df = volume_df.pivot_table('volume', 'rgi_id','time')
 area_df = area_df.pivot_table('area', 'rgi_id','time')
+precip_df = precip_df.pivot_table('precipitation', 'rgi_id','time')
 #Find the net volume change at each timestep
 volume_net = volume_df.copy()
+#Set the first time column as 0 since net change is nothing at this time
 for i in range(1,len(volume_net.columns)):
-    volume_net[volume_net.columns[i]] = volume_df[volume_net.columns[i-1]]-volume_df[volume_net.columns[i]]
+    volume_net[volume_net.columns[i]] = (area_df[area_df.columns[i]]*precip_df[precip_df.columns[i]])+(volume_df[volume_df.columns[i-1]]-volume_df[volume_df.columns[i]])
 
 
 
