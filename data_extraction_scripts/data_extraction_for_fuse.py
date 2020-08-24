@@ -71,9 +71,17 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
                   folpath = raw_data_folder+'/'+fold+'/'+subfold+'/'+rgi_id[0]+'/climate_historical.nc'
                   climate_time = xr.open_dataset(folpath).time.values
 
-                  start_date = climate_time[3]
+                  #Create version of the time series into strings for searching
+                  time_string = time.astype(str)
+                  climate_time_string = climate_time.astype(str)
+                  #Match the first time string to the relevant cliamte time string
+                  start_index = np.flatnonzero(np.core.defchararray.find(climate_time_string,(time_string[0][:4]))!=-1)
+                  #Take the first from this list as the start point
+                  start_date = climate_time_string[start_index[0]]
                   print(start_date)
-                  end_date = climate_time[231]
+                  #Find the end index from the length of the time list
+                  end_index = start_index[0]+len(time)-1
+                  end_date = climate_time[end_index]
                   print(end_date)
                   #Create the dimensions
                   shape = (len(time), len(rgi_id))
@@ -155,8 +163,10 @@ precip_df = precip_df.pivot_table('precipitation', 'rgi_id','time')
 #Find the net volume change at each timestep
 volume_net = volume_df.copy()
 #Set the first time column as 0 since net change is nothing at this time
+volume_net.loc[:,volume_net.columns[0],] = 0.0
+#Find the net volume
 for i in range(1,len(volume_net.columns)):
-    volume_net[volume_net.columns[i]] = (area_df[area_df.columns[i]]*precip_df[precip_df.columns[i]])+(volume_df[volume_df.columns[i-1]]-volume_df[volume_df.columns[i]])
+    volume_net[volume_net.columns[i]] = (area_df[area_df.columns[i]]*precip_df[precip_df.columns[i]])+((volume_df[volume_df.columns[i-1]]-volume_df[volume_df.columns[i]])*1000)
 
 
 
