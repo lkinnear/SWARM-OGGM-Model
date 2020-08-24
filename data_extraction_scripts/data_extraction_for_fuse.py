@@ -163,7 +163,7 @@ precip_df = precip_df.pivot_table('precipitation', 'rgi_id','time')
 #Find the net volume change at each timestep
 volume_net = volume_df.copy()
 #Set the first time column as 0 since net change is nothing at this time
-volume_net.loc[:,volume_net.columns[0],] = 0.0
+volume_net.loc[:,volume_net.columns[0]] = 0.0
 #Find the net volume
 for i in range(1,len(volume_net.columns)):
     volume_net[volume_net.columns[i]] = (area_df[area_df.columns[i]]*precip_df[precip_df.columns[i]])+((volume_df[volume_df.columns[i-1]]-volume_df[volume_df.columns[i]])*1000)
