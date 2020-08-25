@@ -8,7 +8,7 @@ run_name='script_testing'
 #os.mkdir('/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/'+run_name)
 working_dir = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/'+run_name
 #Now locate the raw dataset
-run_name = 'oggm_CORDEX'
+run_name = 'oggm_CORDEX_big_glaciers'
 raw_data_directory = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_runs/'
 raw_data_folder = raw_data_directory+run_name+'/per_glacier/'
 #Now give a it an output to make sure it's running properly and you can check
@@ -181,9 +181,23 @@ lat_cut = pd.cut(loc_df.lat, np.linspace(16, 57.25, 166),labels=(np.linspace(16,
 lon_cut = pd.cut(loc_df.lon, np.linspace(72, 143.25, 286),labels=(np.linspace(72, 143, 285)))
 loc_df['lat_bin'] = lat_cut
 loc_df['lon_bin'] = lon_cut
+#Loop through and assign the values for each pixel
+lat = np.linspace(16, 57, 165)
+lon = np.linspace(72, 143, 285)
+
+runoff = np.zeros((len(lon),len(lat),len(time)))
+print(volume_net.index[1])
+for i in range(0,len(rgi_id)):
+    #Use the RGI_ID lat/lon to apply the values within to a bin
+    loc_df[loc_df['rgi_id'].str.match(volume_net.index[i])]
+    lat_loc = np.where(lat == loc_df['lat_bin'].values)
+    lon_loc = np.where(lat == loc_df['lat_bin'].values)
+    runoff[lon_loc][lat_loc][:] = runoff[lon_loc][lat_loc][:]+volume_net[:][i]
+
 #Now output the File to check
 loc_df.to_csv(working_dir+'/loc_bins_labeled.csv')
 volume_net.to_csv(working_dir+'/volume_net.csv')
+numpy.savetxt("test_runoff.csv", runoff, delimiter=",")
 #df = ds.to_dask_dataframe()
 #ds.to_netcdf(path=working_dir+'/test.nc',mode='w',format='NETCDF4')
 
