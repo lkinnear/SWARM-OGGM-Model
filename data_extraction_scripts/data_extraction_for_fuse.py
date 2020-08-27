@@ -42,7 +42,7 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
                   #Create the file for writing
                   ds = xr.Dataset()
 
-                  print('opened number: {}'.format(num))
+                  print('Successfully opened a dataset to start extracting data')
                   #Global attributes
                   ds.attrs['description'] = 'OGGM model output'
                   ds.attrs['calendar'] = '365-day no leap'
@@ -186,20 +186,47 @@ lat = np.linspace(16, 57, 165)
 lon = np.linspace(72, 143, 285)
 
 runoff = np.zeros((len(lon),len(lat),len(time)))
-print(volume_net.index[1])
+#print(runoff[58][90][:])
 for i in range(0,len(rgi_id)):
     #Use the RGI_ID lat/lon to apply the values within to a bin
-    loc_df[loc_df['rgi_id'].str.match(volume_net.index[i])]
-    lat_loc = np.where(lat == loc_df['lat_bin'].values)
-    lon_loc = np.where(lat == loc_df['lat_bin'].values)
-    runoff[lon_loc][lat_loc][:] = runoff[lon_loc][lat_loc][:]+volume_net[:][i]
+    temp_df = loc_df[loc_df['rgi_id'].str.match(volume_net.index[i])]
+
+    lat_loc = np.where(lat == temp_df['lat_bin'].values)
+    lat_loc = np.take(lat_loc,0)
+    
+    lon_loc = np.where(lon == temp_df['lon_bin'].values)
+    lon_loc = np.take(lon_loc,0)
+
+
+    runoff[lon_loc][lat_loc][:] = runoff[lon_loc][lat_loc][:]+volume_net.loc[volume_net.index[i]].values
+
 
 #Now output the File to check
 loc_df.to_csv(working_dir+'/loc_bins_labeled.csv')
 volume_net.to_csv(working_dir+'/volume_net.csv')
-numpy.savetxt("test_runoff.csv", runoff, delimiter=",")
-#df = ds.to_dask_dataframe()
-#ds.to_netcdf(path=working_dir+'/test.nc',mode='w',format='NETCDF4')
+runoff_data = xr.DataArray(runoff, coords=[lon, lat, time], dims=["lon", "lat", "time"])
+runoff_data = runoff_data.transpose('time','lat','lon')
+runoff_data = runoff_data.to_dataset(name='runoff')
+
+
+runoff_data['runoff'].attrs['description'] = 'Amount of water added by glaciers'
+runoff_data['runoff'].attrs['units'] = 'kg'
+
+runoff_data['lon'].attrs['standard_name'] = 'longitude'
+runoff_data['lon'].attrs['units'] = 'degrees east'
+runoff_data['lon'].attrs['axis'] = 'X'
+
+runoff_data['lat'].attrs['standard_name'] = 'latitude'
+runoff_data['lat'].attrs['units'] = 'degrees north'
+runoff_data['lat'].attrs['axis'] = 'Y'
+
+runoff_data['time'].attrs['standard_name'] = 'time'
+runoff_data['time'].attrs['units'] = 'years since 0000-00-00'
+runoff_data['time'].attrs['axis'] = 'T'
+runoff_data['time'].attrs['calendar'] = 'standard'
+
+
+runoff_data.to_netcdf(path=working_dir+'/test.nc',mode='w',format='NETCDF4')
 
 
 
