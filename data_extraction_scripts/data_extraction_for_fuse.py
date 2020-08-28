@@ -4,11 +4,11 @@ import pandas as pd
 import xarray as xr
 
 #Set up the working directory
-run_name='script_testing'
+run_name = 'script_testing'
 #os.mkdir('/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/'+run_name)
 working_dir = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/'+run_name
 #Now locate the raw dataset
-run_name = 'oggm_CORDEX_big_glaciers'
+run_name = 'oggm_CORDEX'
 raw_data_directory = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_runs/'
 raw_data_folder = raw_data_directory+run_name+'/per_glacier/'
 #Now give a it an output to make sure it's running properly and you can check
@@ -53,16 +53,6 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
                   ds.coords['time'] = ('time', time)
                   ds.coords['time'].astype(float)
                   ds.coords['rgi_id'] = ('rgi_id', rgi_id)
-                  # ds.coords['hydro_year'] = ('time', yrs)
-                  # ds.coords['hydro_month'] = ('time', months)
-                  # ds.coords['calendar_year'] = ('time', cyrs)
-                  # ds.coords['calendar_month'] = ('time', cmonths)
-                  # ds['time'].attrs['description'] = 'Floating hydrological year'
-                  # ds['rgi_id'].attrs['description'] = 'RGI glacier identifier'
-                  # ds['hydro_year'].attrs['description'] = 'Hydrological year'
-                  # ds['hydro_month'].attrs['description'] = 'Hydrological month'
-                  # ds['calendar_year'].attrs['description'] = 'Calendar year'
-                  # ds['calendar_month'].attrs['description'] = 'Calendar month'
 
                   #Find the cliamte file information
 
@@ -116,21 +106,14 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
                                       longitude.astype(float)
                                       precip[:, i] = ds_diag.prcp.sel(time=slice("{}".format(start_date),"{}".format(end_date)))
 
-                                 #Now get the rainfall
 
 
 
 
-                  #idx = pd.MultiIndex.from_arrays(arrays=[latitude,longitude], names=["lat","lon"])
-                  #volume = pd.Series(data=vol, index=idx)
-                  #ds['volume'] = xr.DataArray.from_series(volume)
-                  #ds.coords['lat'] = ('lat', latitude)
-                  #ds.coords['lon'] = ('lon', longitude)
-                  #lat = xr.DataArray(latitude, [('latitude', latitude)])
-                  #lon = xr.DataArray(longitude, [('longitude', longitude)])
+
+
                   ds['volume'] = ((('time', 'rgi_id'), vol))
-                  #ds['volume'] = ds['volume'].expand_dims(lon=lon)
-                  #ds['volume'] = ds['volume'].expand_dims(lat=lat)
+
                   ds['volume'].attrs['description'] = 'Total glacier volume'
                   ds['volume'].attrs['units'] = 'm 3'
 
@@ -166,7 +149,7 @@ volume_net = volume_df.copy()
 volume_net.loc[:,volume_net.columns[0]] = 0.0
 #Find the net volume
 for i in range(1,len(volume_net.columns)):
-    volume_net[volume_net.columns[i]] = (area_df[area_df.columns[i]]*precip_df[precip_df.columns[i]])+((volume_df[volume_df.columns[i-1]]-volume_df[volume_df.columns[i]])*1000)
+    volume_net[volume_net.columns[i]] = (area_df[area_df.columns[i]]*precip_df[precip_df.columns[i]]/1000)+((volume_df[volume_df.columns[i-1]]-volume_df[volume_df.columns[i]]))
 
 
 
@@ -186,6 +169,8 @@ lat = np.linspace(16, 57, 165)
 lon = np.linspace(72, 143, 285)
 
 runoff = np.zeros((len(lon),len(lat),len(time)))
+area = np.zeros((len(lon),len(lat),len(time)))
+
 #print(runoff[58][90][:])
 for i in range(0,len(rgi_id)):
     #Use the RGI_ID lat/lon to apply the values within to a bin
@@ -193,24 +178,45 @@ for i in range(0,len(rgi_id)):
 
     lat_loc = np.where(lat == temp_df['lat_bin'].values)
     lat_loc = np.take(lat_loc,0)
-    
+
     lon_loc = np.where(lon == temp_df['lon_bin'].values)
     lon_loc = np.take(lon_loc,0)
 
 
     runoff[lon_loc][lat_loc][:] = runoff[lon_loc][lat_loc][:]+volume_net.loc[volume_net.index[i]].values
+    area[lon_loc][lat_loc][:] = area[lon_loc][lat_loc][:]+area_df.loc[area_df.index[i]].values
+
+runoff_area_normalised = np.zeros((len(lon),len(lat),len(time)))
+
+for x in range(0,len(lon)):
+    for y in range(0,len(lat)):
+        for z in range(0,len(time)):
+            if area[x][y][z] != 0.0:
+                runoff_area_normalised[x][y][z] = runoff[x][y][z]/area[x][y][z]
 
 
 #Now output the File to check
 loc_df.to_csv(working_dir+'/loc_bins_labeled.csv')
 volume_net.to_csv(working_dir+'/volume_net.csv')
 runoff_data = xr.DataArray(runoff, coords=[lon, lat, time], dims=["lon", "lat", "time"])
+area_data = xr.DataArray(area, coords=[lon, lat, time], dims=["lon", "lat", "time"])
+runoff_area_normalised_data = xr.DataArray(runoff_area_normalised, coords=[lon, lat, time], dims=["lon", "lat", "time"])
 runoff_data = runoff_data.transpose('time','lat','lon')
+area_data = area_data.transpose('time','lat','lon')
+runoff_area_normalised_data = runoff_area_normalised_data.transpose('time','lat','lon')
 runoff_data = runoff_data.to_dataset(name='runoff')
-
+area_data = area_data.to_dataset(name='area')
+runoff_area_normalised_data = runoff_area_normalised_data.to_dataset(name='runoff_area_normalised_data')
+runoff_data = xr.merge([runoff_data, area_data, runoff_area_normalised_data])
 
 runoff_data['runoff'].attrs['description'] = 'Amount of water added by glaciers'
-runoff_data['runoff'].attrs['units'] = 'kg'
+runoff_data['runoff'].attrs['units'] = 'm3'
+
+runoff_data['area'].attrs['description'] = 'Area of glaciers in pixel'
+runoff_data['area'].attrs['units'] = 'm2'
+
+runoff_data['runoff_area_normalised_data'].attrs['description'] = 'Runoff normalised to area of glaciers'
+runoff_data['runoff_area_normalised_data'].attrs['units'] = 'kg/m2'
 
 runoff_data['lon'].attrs['standard_name'] = 'longitude'
 runoff_data['lon'].attrs['units'] = 'degrees east'
