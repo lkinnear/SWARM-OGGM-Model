@@ -75,7 +75,7 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
                   print(end_date)
                   #Create the dimensions
                   shape = (len(time), len(rgi_id))
-                  print('There are {} glaciers that contain run data'.format(len(rgi_id)))
+                  print('There are {} glaciers that contain run data, now extracting this'.format(len(rgi_id)))
                   # These variables are always available
                   vol = np.zeros(shape)
                   area = np.zeros(shape)
@@ -140,6 +140,7 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
 area_df = ds['area'].to_dataframe()
 volume_df = ds['volume'].to_dataframe()
 precip_df = ds['precipitation'].to_dataframe()
+#Pivot table to get them,into the right format time by rgi_id
 volume_df = volume_df.pivot_table('volume', 'rgi_id','time')
 area_df = area_df.pivot_table('area', 'rgi_id','time')
 precip_df = precip_df.pivot_table('precipitation', 'rgi_id','time')
@@ -154,7 +155,6 @@ for i in range(1,len(volume_net.columns)):
 
 
 #Create a dataframe with the RGI ID and the lat lon Coordinates.
-#Now process the DataFrame
 loc_data = np.stack((rgi_id,latitude,longitude),axis=1)
 loc_df = pd.DataFrame(loc_data,columns=['rgi_id','lat','lon'])
 loc_df["lat"] = pd.to_numeric(loc_df["lat"], downcast="float")
@@ -165,29 +165,30 @@ lon_cut = pd.cut(loc_df.lon, np.linspace(72, 143.25, 286),labels=(np.linspace(72
 loc_df['lat_bin'] = lat_cut
 loc_df['lon_bin'] = lon_cut
 #Loop through and assign the values for each pixel
+#First create the labels
 lat = np.linspace(16, 57, 165)
 lon = np.linspace(72, 143, 285)
-
+#Now create the arrays for writing to
 runoff = np.zeros((len(lon),len(lat),len(time)))
 area = np.zeros((len(lon),len(lat),len(time)))
 
-#print(runoff[58][90][:])
+#Now loop through for each rgi_id
 for i in range(0,len(rgi_id)):
     #Use the RGI_ID lat/lon to apply the values within to a bin
     temp_df = loc_df[loc_df['rgi_id'].str.match(volume_net.index[i])]
-
+    #Find the index of where the lat value is based in the writing arrays
     lat_loc = np.where(lat == temp_df['lat_bin'].values)
     lat_loc = np.take(lat_loc,0)
-
+    #Likewise for lon
     lon_loc = np.where(lon == temp_df['lon_bin'].values)
     lon_loc = np.take(lon_loc,0)
 
-
+    #Now assign the values for runoff and area
     runoff[lon_loc][lat_loc][:] = runoff[lon_loc][lat_loc][:]+volume_net.loc[volume_net.index[i]].values
     area[lon_loc][lat_loc][:] = area[lon_loc][lat_loc][:]+area_df.loc[area_df.index[i]].values
-
+#Create the array for normalised runoff to area
 runoff_area_normalised = np.zeros((len(lon),len(lat),len(time)))
-
+#Loop through and calcualte this (with a statement to avod dividing by zero!)
 for x in range(0,len(lon)):
     for y in range(0,len(lat)):
         for z in range(0,len(time)):
@@ -195,18 +196,22 @@ for x in range(0,len(lon)):
                 runoff_area_normalised[x][y][z] = runoff[x][y][z]/area[x][y][z]
 
 
-#Now output the File to check
-loc_df.to_csv(working_dir+'/loc_bins_labeled.csv')
-volume_net.to_csv(working_dir+'/volume_net.csv')
+#Now output some files to check (don't need these)
+# loc_df.to_csv(working_dir+'/loc_bins_labeled.csv')
+# volume_net.to_csv(working_dir+'/volume_net.csv')
+#Prepare the data for netcdf outputting
 runoff_data = xr.DataArray(runoff, coords=[lon, lat, time], dims=["lon", "lat", "time"])
 area_data = xr.DataArray(area, coords=[lon, lat, time], dims=["lon", "lat", "time"])
 runoff_area_normalised_data = xr.DataArray(runoff_area_normalised, coords=[lon, lat, time], dims=["lon", "lat", "time"])
+#transpose the coordinates into the right order
 runoff_data = runoff_data.transpose('time','lat','lon')
 area_data = area_data.transpose('time','lat','lon')
 runoff_area_normalised_data = runoff_area_normalised_data.transpose('time','lat','lon')
+#Convert the data to a dataset
 runoff_data = runoff_data.to_dataset(name='runoff')
 area_data = area_data.to_dataset(name='area')
 runoff_area_normalised_data = runoff_area_normalised_data.to_dataset(name='runoff_area_normalised_data')
+#Finally merge the datasets together and give some descripions
 runoff_data = xr.merge([runoff_data, area_data, runoff_area_normalised_data])
 
 runoff_data['runoff'].attrs['description'] = 'Amount of water added by glaciers'
@@ -231,7 +236,7 @@ runoff_data['time'].attrs['units'] = 'years since 0000-00-00'
 runoff_data['time'].attrs['axis'] = 'T'
 runoff_data['time'].attrs['calendar'] = 'standard'
 
-
+#Output the data
 runoff_data.to_netcdf(path=working_dir+'/test.nc',mode='w',format='NETCDF4')
 
 
