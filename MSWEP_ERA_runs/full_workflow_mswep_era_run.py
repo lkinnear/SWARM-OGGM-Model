@@ -22,7 +22,6 @@ log = logging.getLogger(__name__)
 cfg.initialize(logging_level='WORKFLOW')
 rgi_version = '61'
 
-
 # This has thrown errors sometimes when I've reduced it so left at 80
 cfg.PARAMS['border'] = 80
 # Set this to make the run look for the ref_t* csv in the workflow directory instead of downloading it
@@ -120,8 +119,8 @@ workflow.execute_entity_task(tasks.run_from_climate_data, gdirs,
                               ys=1981, ye=2010, store_monthly_step=True,
                              output_filesuffix='_commitment')
 
-workflow.execute_entity_task(tasks.compile_run_output, gdirs)
-workflow.execute_entity_task(tasks.compile_climate_input, gdirs)
+# workflow.execute_entity_task(tasks.compile_run_output, gdirs)
+# workflow.execute_entity_task(tasks.compile_climate_input, gdirs)
 
 # Log
 m, s = divmod(time.time() - start, 60)
