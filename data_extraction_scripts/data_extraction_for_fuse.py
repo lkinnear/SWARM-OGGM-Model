@@ -4,11 +4,11 @@ import pandas as pd
 import xarray as xr
 
 #Set up the working directory
-run_name = 'script_testing'
-#os.mkdir('/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/'+run_name)
+run_name = 'oggm_mswep_era_reference_run_3_1'
+os.mkdir('/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/'+run_name)
 working_dir = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/'+run_name
 #Now locate the raw dataset
-run_name = 'oggm_CORDEX'
+#run_name = 'oggm_mswep_era_reference_run_3_1'
 raw_data_directory = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_runs/'
 raw_data_folder = raw_data_directory+run_name+'/per_glacier/'
 #Now give a it an output to make sure it's running properly and you can check
@@ -237,7 +237,7 @@ runoff_data['time'].attrs['axis'] = 'T'
 runoff_data['time'].attrs['calendar'] = 'standard'
 
 #Output the data
-runoff_data.to_netcdf(path=working_dir+'/test.nc',mode='w',format='NETCDF4')
+runoff_data.to_netcdf(path=working_dir+'/'+run_name+'_data.nc',mode='w',format='NETCDF4')
 
 
 
