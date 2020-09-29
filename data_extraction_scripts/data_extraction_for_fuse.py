@@ -4,7 +4,7 @@ import pandas as pd
 import xarray as xr
 
 #Set up the working directory
-run_name = 'oggm_mswep_era_reference_run_3_1'
+run_name = 'oggm_mswep_era_reference_run_90'
 os.mkdir('/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/'+run_name)
 working_dir = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/'+run_name
 #Now locate the raw dataset
@@ -194,6 +194,8 @@ for x in range(0,len(lon)):
         for z in range(0,len(time)):
             if area[x][y][z] != 0.0:
                 runoff_area_normalised[x][y][z] = runoff[x][y][z]/area[x][y][z]
+                if runoff_area_normalised[x][y][z] > 10:
+                    print('There is a possbile problem here, normalised runoff is {}, runoff is {} and area is {} at point {},{} at time {}! '.format(runoff_area_normalised[x][y][z],runoff[x][y][z],area[x][y][z],x,y,z))
 
 
 #Now output some files to check (don't need these)

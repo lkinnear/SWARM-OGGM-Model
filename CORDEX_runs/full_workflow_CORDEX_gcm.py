@@ -114,10 +114,18 @@ workflow.execute_entity_task(tasks.filter_inversion_output, gdirs)
 #Compile all the previous tasks to give the output ready as input for a model run
 workflow.execute_entity_task(tasks.init_present_time_glacier, gdirs)
 
+workflow.execute_entity_task(tasks.run_from_climate_data, gdirs,
+                             store_monthly_step=True,ye=2018,
+                             output_filesuffix='_from_data')
 
-workflow.execute_entity_task(gcm_climate.process_swarm_data, gdirs, fpath_temp='/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/SWARM_files/oggm_CORDEX_input/CORDEX_gcm_tmp.nc',fpath_precip='/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/SWARM_files/oggm_CORDEX_input/CORDEX_gcm_prcp.nc')
+#The pathways to the CORDEX input Data
+temp_path = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/CORDEX/HadGEM2/QM_tas_CORDEX_EA_HadGEM2_swarm_domain_monthly_360-day_calendar_19700101-20991230_k.nc'
+precip_path = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/CORDEX/HadGEM2/QM_pr_CORDEX_EA_HadGEM2_swarm_domain_monthly_360-day_calendar_19700101-20991230.nc'
+
+
+workflow.execute_entity_task(gcm_climate.process_swarm_data, gdirs, fpath_temp=temp_path,fpath_precip=precip_path)
 #Run the model run, this can be changed to 'run_from_climate_data' for our runs
-workflow.execute_entity_task(tasks.run_from_climate_data, gdirs,store_monthly_step=True,ys=1991, ye=2010, climate_filename='gcm_data',
+workflow.execute_entity_task(tasks.run_from_climate_data, gdirs,store_monthly_step=True,ys=1971, ye=2097, climate_filename='gcm_data',
                              output_filesuffix='_commitment',init_model_filesuffix='_from_data')
 
 #workflow.execute_entity_task(tasks.compile_run_output, gdirs)
