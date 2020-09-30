@@ -70,7 +70,7 @@ rgidf = rgidf.loc[in_bas]
 rgidf = rgidf.sort_values('Area', ascending=False)
 # Get rid of smaller glaciers, area is in km^2
 
-rgidf = rgidf[rgidf.Area >= 50.0]
+rgidf = rgidf[rgidf.Area >= 150.0]
 
 #This is old code that doesn't work and is less efficient but left here just in case
 #rgidf = rgidf.drop(rgidf[rgidf.Area < 1.0].index)
@@ -123,9 +123,9 @@ temp_path = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/CORDEX/Ha
 precip_path = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/CORDEX/HadGEM2/QM_pr_CORDEX_EA_HadGEM2_swarm_domain_monthly_360-day_calendar_19700101-20991230.nc'
 
 
-workflow.execute_entity_task(gcm_climate.process_swarm_data, gdirs, fpath_temp=temp_path,fpath_precip=precip_path)
+workflow.execute_entity_task(gcm_climate.process_swarm_data, gdirs, fpath_temp=temp_path,fpath_precip=precip_path, gcm_anomaly_range=('1971','2098'))
 #Run the model run, this can be changed to 'run_from_climate_data' for our runs
-workflow.execute_entity_task(tasks.run_from_climate_data, gdirs,store_monthly_step=True,ys=1971, ye=2097, climate_filename='gcm_data',
+workflow.execute_entity_task(tasks.run_from_climate_data, gdirs,store_monthly_step=True,ys=2017, ye=2098, climate_filename='gcm_data',
                              output_filesuffix='_commitment',init_model_filesuffix='_from_data')
 
 #workflow.execute_entity_task(tasks.compile_run_output, gdirs)

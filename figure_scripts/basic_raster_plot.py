@@ -9,7 +9,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 working_dir = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/SWARM-OGGM-Model/figure_scripts/'
 data_path='/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/oggm_mswep_era_reference_run_90/oggm_mswep_era_reference_run_90_data.nc'
 
-shape_path = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/SWARM-OGGM-Model/shape_files/RiverBasinsMerged.shp'
+shape_path = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/SWARM-OGGM-Model/shape_files/gadm36_CHN_0.shp'
 china = gpd.read_file(shape_path)
 
 dataset = xr.open_dataset(data_path,decode_times=False)
