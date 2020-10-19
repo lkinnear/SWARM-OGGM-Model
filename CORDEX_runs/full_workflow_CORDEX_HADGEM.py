@@ -23,7 +23,7 @@ cfg.initialize(logging_level='WORKFLOW')
 rgi_version = '61'
 
 #Change default swarm mu Value
-cfg.PARAMS['swarm_mu']= 90.0000
+cfg.PARAMS['swarm_mu']= 150.0000
 #Change the default temp_melt
 cfg.PARAMS['temp_melt'] = -1.25
 # Set to max to avoid eroors from glaciers exceeding boundaries
@@ -44,7 +44,7 @@ cfg.PARAMS['continue_on_error'] = True
 cfg.PARAMS['cfl_min_dt'] = 10
 
 # Local working directory (where OGGM will write its output) Need to create this beforehand and put the mass balance data in (ref_t_stars.csv).
-WORKING_DIR = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_runs/oggm_CORDEX_HADGEM_90_geodetic'
+WORKING_DIR = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_runs/oggm_CORDEX_HADGEM_150_geodetic'
 cfg.PATHS['working_dir'] = WORKING_DIR
 
 # RGI file setup, easiest but very inelegant way to do this atm is to make a list of all 13,14,15 RGI glaciers then filtering

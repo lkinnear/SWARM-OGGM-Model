@@ -14,13 +14,15 @@ raw_data_folder = raw_data_directory+run_name+'/per_glacier/'
 #Now give a it an output to make sure it's running properly and you can check
 print('Processing the data from '+raw_data_folder+' to output in '+working_dir)
 #Set up files to opened
+filename =
+#filename = 'model_diagnostics_commitment.nc'
 
 rgi_id = []
 num=1
 #Get list of RGI-IDs t0 use
 for root,dirs,files in os.walk(raw_data_folder, topdown=False):
     for name in files:
-        if name == 'model_diagnostics_commitment.nc':
+        if name == filename:
             path = os.path.join(root,name)
             rgi = os.path.basename(os.path.dirname(path))
             rgi = str(rgi)
@@ -29,7 +31,7 @@ for root,dirs,files in os.walk(raw_data_folder, topdown=False):
 for root, dirs, files in os.walk(raw_data_folder, topdown=False):
     for name in files:
        if num == 1:
-           if name == 'model_diagnostics_commitment.nc':
+           if name == filename:
               fname = os.path.join(root,name)
               with xr.open_dataset(fname) as model_run:
                   time = model_run.time.values

@@ -4,7 +4,7 @@ import pandas as pd
 import xarray as xr
 
 #Set up the working directory
-run_name = 'oggm_mswep_era_reference_run_90'
+run_name = 'oggm_CORDEX_HADGEM_90_geodetic'
 os.mkdir('/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/'+run_name)
 working_dir = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/'+run_name
 #Now locate the raw dataset
@@ -13,14 +13,17 @@ raw_data_directory = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/
 raw_data_folder = raw_data_directory+run_name+'/per_glacier/'
 #Now give a it an output to make sure it's running properly and you can check
 print('Processing the data from '+raw_data_folder+' to output in '+working_dir)
-#Set up files to opened
-
+#Set up files
+#filename = 'model_run_from_data.nc'
+filename = 'model_diagnostics_commitment.nc'
+climate_filename = 'gcm_data.nc'
+#climate_filename = 'climate_historical.nc'
 rgi_id = []
 num=1
 #Get list of RGI-IDs to use
 for root,dirs,files in os.walk(raw_data_folder, topdown=False):
     for name in files:
-        if name == 'model_diagnostics_commitment.nc':
+        if name == filename:
             path = os.path.join(root,name)
             rgi = os.path.basename(os.path.dirname(path))
             rgi = str(rgi)
@@ -30,7 +33,7 @@ for root,dirs,files in os.walk(raw_data_folder, topdown=False):
 for root, dirs, files in os.walk(raw_data_folder, topdown=False):
     for name in files:
        if num == 1:
-           if name == 'model_diagnostics_commitment.nc':
+           if name == filename:
               fname = os.path.join(root,name)
               with xr.open_dataset(fname) as model_run:
                   time = model_run.time.values
@@ -58,7 +61,7 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
 
                   fold = rgi_id[0][:8]
                   subfold = rgi_id[0][:11]
-                  folpath = raw_data_folder+'/'+fold+'/'+subfold+'/'+rgi_id[0]+'/climate_historical.nc'
+                  folpath = raw_data_folder+'/'+fold+'/'+subfold+'/'+rgi_id[0]+'/'+climate_filename
                   climate_time = xr.open_dataset(folpath).time.values
 
                   #Create version of the time series into strings for searching
@@ -89,13 +92,13 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
                                  #Do some trickery to get the paths and speed it up over loops
                                   fold = rgi_id[i][:8]
                                   subfold = rgi_id[i][:11]
-                                  folpath = raw_data_folder+'/'+fold+'/'+subfold+'/'+rgi_id[i]+'/model_diagnostics_commitment.nc'
+                                  folpath = raw_data_folder+'/'+fold+'/'+subfold+'/'+rgi_id[i]+'/'+filename
                                   #print('found glacier number: {}'.format(i))
                                   with xr.open_dataset(folpath) as ds_diag:
                                       vol[:, i] = ds_diag.volume_m3.values
                                       area[:, i] = ds_diag.area_m2.values
                                   #open the file to get lat and lon
-                                  folpath = raw_data_folder+'/'+fold+'/'+subfold+'/'+rgi_id[i]+'/climate_historical.nc'
+                                  folpath = raw_data_folder+'/'+fold+'/'+subfold+'/'+rgi_id[i]+'/'+climate_filename
                                   with xr.open_dataset(folpath) as ds_diag:
                                       lat = ds_diag.ref_pix_lat
                                       lon = ds_diag.ref_pix_lon
@@ -104,7 +107,12 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
                                       longitude[i] = lon
                                       latitude.astype(float)
                                       longitude.astype(float)
-                                      precip[:, i] = ds_diag.prcp.sel(time=slice("{}".format(start_date),"{}".format(end_date)))
+                                      temp_ds = ds_diag
+                                      datetimeindex = temp_ds.indexes["time"].to_datetimeindex()
+
+                                      temp_ds["time"] = datetimeindex
+                                      #print(temp_ds.time)
+                                      precip[:, i] = temp_ds.prcp.sel(time=slice("{}".format(start_date),"{}".format(end_date)))
 
 
 
