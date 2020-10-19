@@ -3,6 +3,9 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
+import warnings
+warnings.filterwarnings("ignore", category=RuntimeWarning)
+
 #Set up the working directory
 run_name = 'oggm_CORDEX_HADGEM_90_geodetic'
 os.mkdir('/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/'+run_name)
@@ -98,15 +101,18 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
                                       vol[:, i] = ds_diag.volume_m3.values
                                       area[:, i] = ds_diag.area_m2.values
                                   #open the file to get lat and lon
-                                  folpath = raw_data_folder+'/'+fold+'/'+subfold+'/'+rgi_id[i]+'/'+climate_filename
+                                  folpath = raw_data_folder+'/'+fold+'/'+subfold+'/'+rgi_id[i]+'/'+'climate_historical.nc'
                                   with xr.open_dataset(folpath) as ds_diag:
                                       lat = ds_diag.ref_pix_lat
                                       lon = ds_diag.ref_pix_lon
 
                                       latitude[i] = lat
                                       longitude[i] = lon
+
                                       latitude.astype(float)
                                       longitude.astype(float)
+                                  folpath = raw_data_folder+'/'+fold+'/'+subfold+'/'+rgi_id[i]+'/'+climate_filename
+                                  with xr.open_dataset(folpath) as ds_diag:
                                       temp_ds = ds_diag
                                       datetimeindex = temp_ds.indexes["time"].to_datetimeindex()
 
@@ -161,7 +167,8 @@ for i in range(1,len(volume_net.columns)):
     volume_net[volume_net.columns[i]] = (area_df[area_df.columns[i]]*precip_df[precip_df.columns[i]]/1000)+((volume_df[volume_df.columns[i-1]]-volume_df[volume_df.columns[i]]))
 
 
-
+print(latitude)
+print(longitude)
 #Create a dataframe with the RGI ID and the lat lon Coordinates.
 loc_data = np.stack((rgi_id,latitude,longitude),axis=1)
 loc_df = pd.DataFrame(loc_data,columns=['rgi_id','lat','lon'])
@@ -186,9 +193,12 @@ for i in range(0,len(rgi_id)):
     temp_df = loc_df[loc_df['rgi_id'].str.match(volume_net.index[i])]
     #Find the index of where the lat value is based in the writing arrays
     lat_loc = np.where(lat == temp_df['lat_bin'].values)
+    print(i)
+    print(rgi_id[i])
     lat_loc = np.take(lat_loc,0)
     #Likewise for lon
     lon_loc = np.where(lon == temp_df['lon_bin'].values)
+
     lon_loc = np.take(lon_loc,0)
 
     #Now assign the values for runoff and area
