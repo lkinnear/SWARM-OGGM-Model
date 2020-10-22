@@ -7,7 +7,7 @@ import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 #Set up the working directory
-run_name = 'oggm_CORDEX_HADGEM_90_geodetic'
+run_name = 'oggm_CORDEX_HADGEM_120_geodetic'
 os.mkdir('/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/'+run_name)
 working_dir = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/'+run_name
 #Now locate the raw dataset
@@ -164,7 +164,7 @@ volume_net = volume_df.copy()
 volume_net.loc[:,volume_net.columns[0]] = 0.0
 #Find the net volume
 for i in range(1,len(volume_net.columns)):
-    volume_net[volume_net.columns[i]] = (area_df[area_df.columns[i]]*precip_df[precip_df.columns[i]]/1000)+((volume_df[volume_df.columns[i-1]]-volume_df[volume_df.columns[i]]))
+    volume_net[volume_net.columns[i]] = (area_df[area_df.columns[i]]*precip_df[precip_df.columns[i]]/900)+((volume_df[volume_df.columns[i-1]]-volume_df[volume_df.columns[i]]))
 
 
 print(latitude)
@@ -193,8 +193,7 @@ for i in range(0,len(rgi_id)):
     temp_df = loc_df[loc_df['rgi_id'].str.match(volume_net.index[i])]
     #Find the index of where the lat value is based in the writing arrays
     lat_loc = np.where(lat == temp_df['lat_bin'].values)
-    print(i)
-    print(rgi_id[i])
+
     lat_loc = np.take(lat_loc,0)
     #Likewise for lon
     lon_loc = np.where(lon == temp_df['lon_bin'].values)
@@ -209,11 +208,11 @@ runoff_area_normalised = np.zeros((len(lon),len(lat),len(time)))
 #Loop through and calcualte this (with a statement to avod dividing by zero!)
 for x in range(0,len(lon)):
     for y in range(0,len(lat)):
-        for z in range(0,len(time)):
+        for z in range(1,len(time)):
             if area[x][y][z] != 0.0:
                 runoff_area_normalised[x][y][z] = runoff[x][y][z]/area[x][y][z]
                 if runoff_area_normalised[x][y][z] > 10:
-                    print('There is a possbile problem here, normalised runoff is {}, runoff is {} and area is {} at point {},{} at time {}! '.format(runoff_area_normalised[x][y][z],runoff[x][y][z],area[x][y][z],x,y,z))
+                    print('There is a possible problem here, normalised runoff is {}, runoff is {} and area is {} at point {},{} at time {}! '.format(runoff_area_normalised[x][y][z],runoff[x][y][z],area[x][y][z-1],x,y,z))
 
 
 #Now output some files to check (don't need these)
