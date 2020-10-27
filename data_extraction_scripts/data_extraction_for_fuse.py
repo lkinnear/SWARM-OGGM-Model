@@ -7,7 +7,7 @@ import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 #Set up the working directory
-run_name = 'oggm_mswep_era_reference_run_120'
+run_name = 'oggm_mswep_era_reference_run_150'
 os.mkdir('/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/'+run_name)
 working_dir = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/'+run_name
 #Now locate the raw dataset
