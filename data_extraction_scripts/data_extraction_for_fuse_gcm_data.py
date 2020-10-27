@@ -7,7 +7,7 @@ import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 #Set up the working directory
-run_name = 'oggm_mswep_era_reference_run_120'
+run_name = 'oggm_CORDEX_HADGEM_120_geodetic'
 os.mkdir('/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/'+run_name)
 working_dir = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/'+run_name
 #Now locate the raw dataset
@@ -18,7 +18,7 @@ raw_data_folder = raw_data_directory+run_name+'/per_glacier/'
 print('Processing the data from '+raw_data_folder+' to output in '+working_dir)
 #Set up files
 filename = 'model_diagnostics_commitment.nc'
-climate_filename = 'climate_historical.nc'
+climate_filename = 'gcm_data.nc'
 rgi_id = []
 num=1
 #Get list of RGI-IDs to use
@@ -109,8 +109,14 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
 
                                       latitude.astype(float)
                                       longitude.astype(float)
+                                  folpath = raw_data_folder+'/'+fold+'/'+subfold+'/'+rgi_id[i]+'/'+climate_filename
+                                  with xr.open_dataset(folpath) as ds_diag:
+                                      temp_ds = ds_diag
+                                      datetimeindex = temp_ds.indexes["time"].to_datetimeindex()
 
-                                      precip[:, i] = ds_diag.prcp.sel(time=slice("{}".format(start_date),"{}".format(end_date)))
+                                      temp_ds["time"] = datetimeindex
+                                      #print(temp_ds.time)
+                                      precip[:, i] = temp_ds.prcp.sel(time=slice("{}".format(start_date),"{}".format(end_date)))
 
 
 
