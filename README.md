@@ -41,4 +41,5 @@ Running oggm will require mass balance calibration for the climate dataset used 
 ### prepro_directory_tester.py 
     A simple script to allow comparison between different prepro directory levels
 
-
+### Preparing_climate_files_for_oggm.txt
+    A series of instructions using cdo and other tools to change the gcm climate files into a format for reading into oggm
