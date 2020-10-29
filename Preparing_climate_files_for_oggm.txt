@@ -1,0 +1,32 @@
+Instructions for preparing the files for OGGM
+
+Firstly the downloaded gcm files for temperature and precipitation must be converted from daily to monthly values.
+This can be done using the following commands:
+
+For precipitation,
+cdo --timestat_date first -monsum -cat nameofdailyprecipfile.nc nameofoutputprecipfile.nc
+
+For temperature,
+cdo --timestat_date first -monavg -cat nameofdailytempfile.nc nameofoutputtempfile.nc
+
+Have to include the timestat_date first part to ensure that all dates are the same time each month (may not be an issue now we're not merging them into a subsequent file)
+
+Then edit the resulting netcdf files to ensure that the variables match the input data names.
+Use,
+ncdump -c filename
+to see these details along with,
+cdo info filename
+to check that dates etc are there.
+
+To change attributes of variables e.g. units ,
+ncatted -a nameofattribute,variablename,o,c,newattribute inputfile.nc outputfile.nc
+newattribute the whatever you want to change it to e.g. units,temp,o,c,degrees to change the temp attribute unit description to degrees
+
+To rename a variable use,
+ncrename -v oldvariablename,newvariablename inputfile.nc outputfile.nc
+
+Finally the cdo montlhy output sometimes includes the time variable with units that can't be read (mainly due to the T00:00:00Z at the end).
+This can be circumvented by renaming the units and removing the T and Z,
+ncatted -a units,time,o,c,'days since 1949-12-01 00:00:00' inputfile.nc outputfile.nc
+
+It can be temperamental at times about having the same input and output name when editing files so be aware that temp intermediate files may be needed.
