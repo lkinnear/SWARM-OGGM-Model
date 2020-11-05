@@ -22,7 +22,7 @@ log = logging.getLogger(__name__)
 cfg.initialize(logging_level='WORKFLOW')
 rgi_version = '61'
 #Change default swarm mu Value
-cfg.PARAMS['swarm_mu']= 150.0000
+cfg.PARAMS['swarm_mu']= 90.0
 #Change the default temp_melt
 cfg.PARAMS['temp_melt'] = -1.25
 # This has thrown errors sometimes when I've reduced it so left at 80
@@ -42,7 +42,7 @@ cfg.PARAMS['continue_on_error'] = True
 # Change the minimum timestep
 cfg.PARAMS['cfl_min_dt'] = 10.0
 # Local working directory (where OGGM will write its output) Need to create this beforehand and put the mass balance data in (ref_t_stars.csv).
-WORKING_DIR = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_runs/oggm_mswep_era_reference_run_150_geodetic'
+WORKING_DIR = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_runs/oggm_mswep_era_reference_run_90_geodetic'
 cfg.PATHS['working_dir'] = WORKING_DIR
 
 # RGI file setup, easiest but very inelegant way to do this atm is to make a list of all 13,14,15 RGI glaciers then filtering
@@ -120,7 +120,7 @@ workflow.execute_entity_task(tasks.init_present_time_glacier, gdirs)
 
 #Run the model run, this can be changed to 'run_from_climate_data' for our runs
 workflow.execute_entity_task(tasks.run_from_climate_data, gdirs,
-                              ys=1980, ye=2018, store_monthly_step=True,
+                             ys=1980, ye=2018, store_monthly_step=True,
                              output_filesuffix='_commitment')
 
 # workflow.execute_entity_task(tasks.compile_run_output, gdirs)
