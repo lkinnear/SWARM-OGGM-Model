@@ -34,7 +34,7 @@ cfg.initialize()
 cfg.PARAMS['mu_star_halfperiod']=8.0
 
 # Local paths (where to write the OGGM run output)
-WORKING_DIR = '/exports/csce/datastore/geos/groups/geos_iceocean/dgoldber/oggm/oggm_runs/oggm_mb_calibration_ERA5_MSWEP_reference_period'
+WORKING_DIR = '/exports/csce/datastore/geos/groups/geos_iceocean/dgoldber/oggm/oggm_runs/oggm_mb_calibration_ERA5_MSWEP_reference_period_nogeo'
 utils.mkdir(WORKING_DIR, reset=True)
 cfg.PATHS['working_dir'] = WORKING_DIR
 
@@ -72,8 +72,8 @@ geo_folder_path='/exports/csce/datastore/geos/groups/geos_iceocean/dgoldber/oggm
 geo_file_name = 'rgi_wgms_links_with_geo.csv'
 
 
-df, _ = utils.get_geodetic_files(geodetic_folder_path=geo_folder_path, geodetic_filename=geo_file_name)
-#df, _ = utils.get_wgms_files()
+#df, _ = utils.get_geodetic_files(geodetic_folder_path=geo_folder_path, geodetic_filename=geo_file_name)
+df, _ = utils.get_wgms_files()
 
 #Check this file if needed by printing to a csv (troubleshooting)
 #df.to_csv('/exports/csce/datastore/geos/users/s0933963/oggm_mb_test/df.csv')
@@ -93,12 +93,12 @@ gdirs = rgitopo.init_glacier_directories_from_rgitopo(rids)
 
 # We need to know which period we have data for
 log.info('Process the climate data...')
-#execute_entity_task(tasks.process_climate_data, gdirs, y1=2018)
-execute_entity_task(tasks.process_climate_data, gdirs,y1=2018)
+execute_entity_task(tasks.process_climate_data, gdirs, y1=2018)
+#execute_entity_task(tasks.process_climate_data, gdirs)
 
 # Let OGGM decide which of these have enough data
-gdirs = utils.get_ref_mb_glaciers_geodetic(gdirs,temp_geodetic_folder_path=geo_folder_path,temp_geodetic_filename=geo_file_name)
-#gdirs = utils.get_ref_mb_glaciers(gdirs)
+#gdirs = utils.get_ref_mb_glaciers_geodetic(gdirs,temp_geodetic_folder_path=geo_folder_path,temp_geodetic_filename=geo_file_name)
+gdirs = utils.get_ref_mb_glaciers(gdirs)
 
 # Save the list of glaciers for later
 log.info('For RGIV{} and {} we have {} reference glaciers.'.format(rgi_version,

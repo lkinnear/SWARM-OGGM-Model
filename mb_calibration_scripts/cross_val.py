@@ -23,14 +23,21 @@ cfg.PARAMS['continue_on_error'] = True
 # Initialize OGGM and set up the run parameters
 cfg.initialize()
 
+cfg.PARAMS['mu_star_halfperiod']=8.0
+cfg.PARAMS['temp_melt'] = -1.25
+
 if baseline == 'HISTALP':
     # Other params: see https://oggm.org/2018/08/10/histalp-parameters/
     cfg.PARAMS['prcp_scaling_factor'] = 1.75
     cfg.PARAMS['temp_melt'] = -1.75
 
 # Local paths (where to find the OGGM run output)
-WORKING_DIR = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_runs/oggm_mb_calibration'
+#WORKING_DIR = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_runs/oggm_mb_calibration'
+WORKING_DIR = '/exports/csce/datastore/geos/groups/geos_iceocean/dgoldber/oggm/oggm_runs/oggm_mb_calibration_ERA5_MSWEP_reference_period_nogeo'
 cfg.PATHS['working_dir'] = WORKING_DIR
+
+geo_folder_path='/exports/csce/datastore/geos/groups/geos_iceocean/dgoldber/oggm/geodetic_data/'
+geo_file_name = 'rgi_wgms_links_with_geo.csv'
 
 # Read the rgi ids of the reference glaciers
 rids = pd.read_csv(os.path.join(WORKING_DIR, 'mb_ref_glaciers.csv'),
@@ -38,6 +45,7 @@ rids = pd.read_csv(os.path.join(WORKING_DIR, 'mb_ref_glaciers.csv'),
 
 # Go - initialize glacier directories
 gdirs = workflow.init_glacier_directories(rids)
+#gdirs = utils.get_ref_mb_glaciers_geodetic(gdirs,temp_geodetic_folder_path=geo_folder_path,temp_geodetic_filename=geo_file_name)
 
 # Cross-validation
 file = os.path.join(cfg.PATHS['working_dir'], 'ref_tstars.csv')
@@ -78,8 +86,8 @@ ref_df.to_csv(os.path.join(cfg.PATHS['working_dir'], 'crossval_tstars.csv'))
 
 # Marzeion et al Figure 3
 f, ax = plt.subplots(1, 1)
-bins = np.arange(20) * 400 - 3800
-ylim = 130
+bins = np.arange(20) * 100 - 950
+ylim = 20
 ref_df['CV_MB_BIAS'].plot(ax=ax, kind='hist', bins=bins, color='C3', label='')
 ax.vlines(ref_df['CV_MB_BIAS'].mean(), 0, ylim, linestyles='--', label='Mean')
 ax.vlines(ref_df['CV_MB_BIAS'].quantile(), 0, ylim, label='Median')

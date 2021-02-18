@@ -2,22 +2,23 @@ import os as os
 import numpy as np
 import pandas as pd
 import xarray as xr
+from IPython import embed
 
 import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 #Set up the working directory
-run_name = 'oggm_mswep_era_reference_run_90_geodetic'
-os.mkdir('/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/'+run_name)
-working_dir = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_run_data_for_swarm/'+run_name
+run_name = 'thickness_test'
+#os.mkdir('/exports/csce/datastore/geos/groups/geos_iceocean/dgoldber/oggm/oggm_run_data_for_swarm/'+run_name)
+working_dir = '/exports/csce/datastore/geos/groups/geos_iceocean/dgoldber/oggm/oggm_runs/oggm_run_data_for_swarm/'+run_name
 #Now locate the raw dataset
 #run_name = 'oggm_mswep_era_reference_run_3_1'
-raw_data_directory = '/exports/csce/datastore/geos/groups/geos_iceocean/kinnear/oggm_runs/'
+raw_data_directory = '/exports/csce/datastore/geos/groups/geos_iceocean/dgoldber/oggm/oggm_runs/'
 raw_data_folder = raw_data_directory+run_name+'/per_glacier/'
 #Now give a it an output to make sure it's running properly and you can check
 print('Processing the data from '+raw_data_folder+' to output in '+working_dir)
 #Set up files
-filename = 'model_diagnostics_commitment.nc'
+filename = 'model_run_commitment.nc'
 climate_filename = 'climate_historical.nc'
 #climate_filename = 'gcm_data.nc'
 rgi_id = []
@@ -74,7 +75,8 @@ for root, dirs, files in os.walk(raw_data_folder, topdown=False):
                   #Take the first from this list as the start point
                   start_date = climate_time_string[start_index[0]]
                   print(start_date)
-                  #Find the end index from the length of the time list
+                  #Find the end index from the length of the time lista
+                  embed()
                   end_index = start_index[0]+len(time)-1
                   end_date = climate_time[end_index]
                   print(end_date)
